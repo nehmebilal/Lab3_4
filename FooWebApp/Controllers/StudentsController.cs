@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 using FooWebApp.DataContracts;
 using FooWebApp.Store;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +31,13 @@ namespace FooWebApp.Controllers
             {
                 return NotFound($"The student with id {id} was not found");
             }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new Error
+                {
+                    ErrorDescription = ex.Message
+                });
+            }
         }
 
         // POST api/students
@@ -44,6 +53,13 @@ namespace FooWebApp.Controllers
             {
                 return Conflict($"Student {student.Id} already exists");
             }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new Error
+                {
+                    ErrorDescription = ex.Message
+                });
+            }
         }
 
         // DELETE api/students/5
@@ -58,6 +74,42 @@ namespace FooWebApp.Controllers
             catch (StudentNotFoundException)
             {
                 return NotFound($"The student with id {id} was not found");
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new Error
+                {
+                    ErrorDescription = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetList()
+        {
+            var students = await _studentStore.GetStudents();
+            return Ok(students);
+        }
+
+        [HttpPut("{studentId}")]
+        public async Task<IActionResult> Put(string studentId, [FromBody] PutStudentDto studentDto)
+        {
+            try
+            {
+                var student = new Student
+                {
+                    Name = studentDto.Name,
+                    GradePercentage = studentDto.GradePercentage
+                };
+                await _studentStore.UpdateStudent(studentId, student);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new Error
+                {
+                    ErrorDescription = ex.Message
+                });
             }
         }
     }

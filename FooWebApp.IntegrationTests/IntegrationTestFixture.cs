@@ -2,7 +2,7 @@
 using FooWebApp.Client;
 using Microsoft.AspNetCore.TestHost;
 
-namespace FooWebAppIntegrationTests
+namespace FooWebApp.IntegrationTests
 {
     public class IntegrationTestFixture
     {

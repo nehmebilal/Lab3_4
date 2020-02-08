@@ -1,4 +1,5 @@
-﻿using FooWebApp.DataContracts;
+﻿using System.Collections.Generic;
+using FooWebApp.DataContracts;
 using System.Threading.Tasks;
 
 namespace FooWebApp.Client
