@@ -8,5 +8,8 @@ namespace FooWebApp.Client
     {
         Task AddStudent(Student student);
         Task<Student> GetStudent(string id);
+        Task UpdateStudent(Student student);
+        Task<GetStudentsResponse> GetStudents();
+        Task DeleteStudent(string id);
     }
 }

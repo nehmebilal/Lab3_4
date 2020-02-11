@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using FooWebApp.DataContracts;
 using FooWebApp.Store;
 using Microsoft.AspNetCore.Mvc;
@@ -22,21 +20,19 @@ namespace FooWebApp.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest("The id must not be empty");
+            }
+
             try
             {
                 Student student = await _studentStore.GetStudent(id);
                 return Ok(student);
             }
-            catch(StudentNotFoundException)
+            catch (StudentNotFoundException)
             {
                 return NotFound($"The student with id {id} was not found");
-            }
-            catch (ArgumentException ex)
-            {
-                return StatusCode(400, new Error
-                {
-                    ErrorDescription = ex.Message
-                });
             }
         }
 
@@ -44,6 +40,11 @@ namespace FooWebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Student student)
         {
+            if (!ValidateStudent(student, out string error))
+            {
+                return BadRequest(error);
+            }
+
             try
             {
                 await _studentStore.AddStudent(student);
@@ -53,19 +54,16 @@ namespace FooWebApp.Controllers
             {
                 return Conflict($"Student {student.Id} already exists");
             }
-            catch (ArgumentException ex)
-            {
-                return StatusCode(400, new Error
-                {
-                    ErrorDescription = ex.Message
-                });
-            }
         }
 
         // DELETE api/students/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return BadRequest("The id must not be empty");
+            }
             try
             {
                 await _studentStore.DeleteStudent(id);
@@ -75,42 +73,57 @@ namespace FooWebApp.Controllers
             {
                 return NotFound($"The student with id {id} was not found");
             }
-            catch (ArgumentException ex)
-            {
-                return StatusCode(400, new Error
-                {
-                    ErrorDescription = ex.Message
-                });
-            }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetList()
+        public async Task<IActionResult> GetStudents()
         {
             var students = await _studentStore.GetStudents();
-            return Ok(students);
+            var response = new GetStudentsResponse
+            {
+                Students = students
+            };
+            return Ok(response);
         }
 
-        [HttpPut("{studentId}")]
-        public async Task<IActionResult> Put(string studentId, [FromBody] PutStudentDto studentDto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(string id, [FromBody] UpdateStudentRequestBody updateStudentRequestBody)
         {
-            try
+            var student = new Student
             {
-                var student = new Student
-                {
-                    Name = studentDto.Name,
-                    GradePercentage = studentDto.GradePercentage
-                };
-                await _studentStore.UpdateStudent(studentId, student);
-                return Ok();
-            }
-            catch (ArgumentException ex)
+                Id = id,
+                Name = updateStudentRequestBody.Name,
+                GradePercentage = updateStudentRequestBody.GradePercentage
+            };
+
+            if (!ValidateStudent(student, out string error))
             {
-                return StatusCode(400, new Error
-                {
-                    ErrorDescription = ex.Message
-                });
+                return BadRequest(error);
             }
+
+            await _studentStore.UpdateStudent(student);
+            return Ok();
+        }
+
+        private bool ValidateStudent(Student student, out string error)
+        {
+            if (string.IsNullOrWhiteSpace(student.Id))
+            {
+                error = "The id must not be empty";
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(student.Name))
+            {
+                error = "The Name must not be empty";
+                return false;
+            }
+            if (student.GradePercentage < 0 || student.GradePercentage > 100)
+            {
+                error = $"GradePercentage {student.GradePercentage} is not valid";
+                return false;
+            }
+            error = "";
+            return true;
         }
     }
 }

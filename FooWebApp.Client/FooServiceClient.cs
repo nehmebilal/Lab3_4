@@ -24,6 +24,34 @@ namespace FooWebApp.Client
             return fetchedStudent;
         }
 
+        public async Task UpdateStudent(Student student)
+        {
+            var body = new UpdateStudentRequestBody
+            {
+                Name = student.Name,
+                GradePercentage = student.GradePercentage
+            };
+            
+            string json = JsonConvert.SerializeObject(body);
+            HttpResponseMessage responseMessage = await _httpClient.PutAsync($"api/students/{student.Id}", new StringContent(json, 
+                Encoding.UTF8, "application/json"));
+            EnsureSuccessOrThrow(responseMessage);
+        }
+
+        public async Task<GetStudentsResponse> GetStudents()
+        {
+            var responseMessage = await _httpClient.GetAsync("api/students");
+            EnsureSuccessOrThrow(responseMessage);
+            string json = await responseMessage.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<GetStudentsResponse>(json);
+        }
+
+        public async Task DeleteStudent(string id)
+        {
+            var responseMessage = await _httpClient.DeleteAsync($"api/students/{id}");
+            EnsureSuccessOrThrow(responseMessage);
+        }
+
         private static void EnsureSuccessOrThrow(HttpResponseMessage responseMessage)
         {
             if (!responseMessage.IsSuccessStatusCode)

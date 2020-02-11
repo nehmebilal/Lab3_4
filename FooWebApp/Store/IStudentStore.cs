@@ -10,6 +10,6 @@ namespace FooWebApp.Store
         Task<Student> GetStudent(string id);
         Task DeleteStudent(string studentId);
         Task<List<Student>> GetStudents();
-        Task UpdateStudent(string studentId,Student student);
+        Task UpdateStudent(Student student);
     }
 }
