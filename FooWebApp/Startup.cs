@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FooWebApp.Store;
+﻿using FooWebApp.Store;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace FooWebApp
 {
@@ -27,7 +20,10 @@ namespace FooWebApp
         {
             services.AddControllers();
 
-            services.AddSingleton<IStudentStore, InMemoryStudentStore>();
+            services.AddSingleton<IStudentStore, AzureTableStudentStore>();
+
+            services.AddOptions();
+            services.Configure<AzureStorageSettings>(Configuration.GetSection("AzureStorageSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
