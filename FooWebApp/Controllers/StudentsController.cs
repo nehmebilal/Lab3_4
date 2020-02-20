@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using FooWebApp.DataContracts;
 using FooWebApp.Store;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace FooWebApp.Controllers
 {
@@ -10,21 +12,18 @@ namespace FooWebApp.Controllers
     public class StudentsController : ControllerBase
     {
         private readonly IStudentStore _studentStore;
+        private readonly ILogger<StudentsController> _logger;
 
-        public StudentsController(IStudentStore studentStore)
+        public StudentsController(IStudentStore studentStore, ILogger<StudentsController> logger)
         {
             _studentStore = studentStore;
+            _logger = logger;
         }
 
         // GET api/students/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return BadRequest("The id must not be empty");
-            }
-
             try
             {
                 Student student = await _studentStore.GetStudent(id);
@@ -33,6 +32,16 @@ namespace FooWebApp.Controllers
             catch (StudentNotFoundException)
             {
                 return NotFound($"The student with id {id} was not found");
+            }
+            catch (StorageErrorException e)
+            {
+                _logger.LogError(e, $"Failed to retrieve student {id} from storage");
+                return StatusCode(503, "The service is unavailable, please retry in few minutes");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unknown exception occured while retrieving student {id} from storage");
+                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
             }
         }
 
@@ -54,6 +63,16 @@ namespace FooWebApp.Controllers
             {
                 return Conflict($"Student {student.Id} already exists");
             }
+            catch (StorageErrorException e)
+            {
+                _logger.LogError(e, $"Failed add student {student} to storage");
+                return StatusCode(503, "The service is unavailable, please retry in few minutes");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unknown exception occured while adding student {student} to storage");
+                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+            }
         }
 
         // DELETE api/students/5
@@ -73,36 +92,66 @@ namespace FooWebApp.Controllers
             {
                 return NotFound($"The student with id {id} was not found");
             }
+            catch (StorageErrorException e)
+            {
+                _logger.LogError(e, $"Failed to delete student {id} from storage");
+                return StatusCode(503, "The service is unavailable, please retry in few minutes");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unknown exception occured while deleting student {id} from storage");
+                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> GetStudents()
         {
-            var students = await _studentStore.GetStudents();
-            var response = new GetStudentsResponse
+            try
             {
-                Students = students
-            };
-            return Ok(response);
+                var students = await _studentStore.GetStudents();
+                var response = new GetStudentsResponse
+                {
+                    Students = students
+                };
+                return Ok(response);
+            }
+            catch (StorageErrorException)
+            {
+                return StatusCode(503, "The service is unavailable, please retry in few minutes");
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody] UpdateStudentRequestBody updateStudentRequestBody)
         {
-            var student = new Student
+            try
             {
-                Id = id,
-                Name = updateStudentRequestBody.Name,
-                GradePercentage = updateStudentRequestBody.GradePercentage
-            };
+                var student = new Student
+                {
+                    Id = id,
+                    Name = updateStudentRequestBody.Name,
+                    GradePercentage = updateStudentRequestBody.GradePercentage
+                };
 
-            if (!ValidateStudent(student, out string error))
-            {
-                return BadRequest(error);
+                if (!ValidateStudent(student, out string error))
+                {
+                    return BadRequest(error);
+                }
+
+                await _studentStore.UpdateStudent(student);
+                return Ok();
             }
-
-            await _studentStore.UpdateStudent(student);
-            return Ok();
+            catch (StorageErrorException e)
+            {
+                _logger.LogError(e, $"Failed to update student {id} in storage");
+                return StatusCode(503, "The service is unavailable, please retry in few minutes");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unknown exception occured while updating student {id} in storage");
+                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+            }
         }
 
         private bool ValidateStudent(Student student, out string error)

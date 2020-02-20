@@ -66,13 +66,13 @@ namespace FooWebApp.IntegrationTests
         [InlineData("123", null, 10)]
         [InlineData("123", "Joe", -1)]
         [InlineData("123", "Joe", 101)]
-        public async Task PostInvalidStudent(string id, string name, int grade)
+        public async Task PostInvalidStudent(string id, string name, int gradePercentage)
         {
             var student = new Student
             {
                 Name = name,
                 Id = id,
-                GradePercentage = grade
+                GradePercentage = gradePercentage
             };
             var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.AddStudent(student));
             Assert.Equal(HttpStatusCode.BadRequest, e.StatusCode);
@@ -144,6 +144,22 @@ namespace FooWebApp.IntegrationTests
             // make sure the student was added, even though it did not exist
             var fetchedStudent = await _fooServiceClient.GetStudent(student.Id);
             Assert.Equal(student, fetchedStudent);
+        }
+
+        [Theory]
+        [InlineData("", 10)]
+        [InlineData(" ", 10)]
+        [InlineData(null, 10)]
+        [InlineData("Joe", -1)]
+        [InlineData("Joe", 101)]
+        public async Task UpdateStudentWithInvalidProperties(string name, int gradePercentage)
+        {
+            var student = CreateRandomStudent();
+            await AddStudent(student);
+            student.Name = name;
+            student.GradePercentage = gradePercentage;
+            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.UpdateStudent(student));
+            Assert.Equal(HttpStatusCode.BadRequest, e.StatusCode);
         }
 
         [Fact]

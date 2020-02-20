@@ -1,12 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FooWebApp", "FooWebApp\FooWebApp.csproj", "{29121073-A102-4F94-A09B-C6EA255111DA}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp", "FooWebApp\FooWebApp.csproj", "{29121073-A102-4F94-A09B-C6EA255111DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FooWebApp.DataContracts", "FooWebApp.DataContracts\FooWebApp.DataContracts.csproj", "{9ECFA89E-4387-4246-88ED-6358F3AB8D8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp.DataContracts", "FooWebApp.DataContracts\FooWebApp.DataContracts.csproj", "{9ECFA89E-4387-4246-88ED-6358F3AB8D8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FooWebApp.IntegrationTests", "FooWebApp.IntegrationTests\FooWebApp.IntegrationTests.csproj", "{DD4F0583-A682-4D23-83F2-ED87F86AA90F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp.IntegrationTests", "FooWebApp.IntegrationTests\FooWebApp.IntegrationTests.csproj", "{DD4F0583-A682-4D23-83F2-ED87F86AA90F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FooWebApp.Client", "FooWebApp.Client\FooWebApp.Client.csproj", "{184E7329-DF36-40CB-A211-6DD842E504AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp.Client", "FooWebApp.Client\FooWebApp.Client.csproj", "{184E7329-DF36-40CB-A211-6DD842E504AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FooWebApp.Tests", "FooWebApp.Tests\FooWebApp.Tests.csproj", "{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +35,15 @@ Global
 		{184E7329-DF36-40CB-A211-6DD842E504AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{184E7329-DF36-40CB-A211-6DD842E504AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{184E7329-DF36-40CB-A211-6DD842E504AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4FB7CCD3-0EA7-4FBA-8777-965A4D856EEC}
 	EndGlobalSection
 EndGlobal

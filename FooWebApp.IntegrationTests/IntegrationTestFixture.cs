@@ -1,5 +1,4 @@
-﻿using FooWebApp;
-using FooWebApp.Client;
+﻿using FooWebApp.Client;
 using Microsoft.AspNetCore.TestHost;
 
 namespace FooWebApp.IntegrationTests

@@ -6,6 +6,12 @@ namespace FooWebApp.Store
 {
     public interface IStudentStore
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="student"></param>
+        /// <returns></returns>
+        /// <exception cref="StorageErrorException"
         Task AddStudent(Student student);
         Task<Student> GetStudent(string id);
         Task DeleteStudent(string studentId);
