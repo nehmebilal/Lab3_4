@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace FooWebApp.IntegrationTests
 {
-    public class IntegrationTestFixture
+    public class IntegrationTestFixture : IEndToEndTestsFixture
     {
         public IntegrationTestFixture()
         {

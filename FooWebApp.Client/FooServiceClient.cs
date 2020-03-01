@@ -56,7 +56,7 @@ namespace FooWebApp.Client
         {
             if (!responseMessage.IsSuccessStatusCode)
             {
-                throw new FooServiceException("", responseMessage.StatusCode);
+                throw new FooServiceException(responseMessage.ReasonPhrase, responseMessage.StatusCode);
             }
         }
 

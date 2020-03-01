@@ -57,7 +57,7 @@ namespace FooWebApp.Controllers
             try
             {
                 await _studentStore.AddStudent(student);
-                return Ok();
+                return CreatedAtAction(nameof(Get), new { id = student.Id}, student);
             }
             catch (StudentAlreadyExistsException)
             {
