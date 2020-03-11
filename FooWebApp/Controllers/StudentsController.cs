@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using FooWebApp.DataContracts;
 using FooWebApp.Store;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -13,11 +15,13 @@ namespace FooWebApp.Controllers
     {
         private readonly IStudentStore _studentStore;
         private readonly ILogger<StudentsController> _logger;
+        private readonly TelemetryClient _telemetryClient;
 
-        public StudentsController(IStudentStore studentStore, ILogger<StudentsController> logger)
+        public StudentsController(IStudentStore studentStore, ILogger<StudentsController> logger, TelemetryClient telemetryClient)
         {
             _studentStore = studentStore;
             _logger = logger;
+            _telemetryClient = telemetryClient;
         }
 
         // GET api/students/5
@@ -26,7 +30,9 @@ namespace FooWebApp.Controllers
         {
             try
             {
+                var stopWatch = Stopwatch.StartNew();
                 Student student = await _studentStore.GetStudent(id);
+                _telemetryClient.TrackMetric("StudentStore.GetStudent.Time", stopWatch.ElapsedMilliseconds);
                 return Ok(student);
             }
             catch (StudentNotFoundException)
@@ -56,7 +62,11 @@ namespace FooWebApp.Controllers
 
             try
             {
+                var stopWatch = Stopwatch.StartNew();
                 await _studentStore.AddStudent(student);
+                _telemetryClient.TrackMetric("StudentStore.AddStudent.Time", stopWatch.ElapsedMilliseconds);
+                _telemetryClient.TrackEvent("StudentAdded");
+
                 return CreatedAtAction(nameof(Get), new { id = student.Id}, student);
             }
             catch (StudentAlreadyExistsException)
@@ -85,7 +95,11 @@ namespace FooWebApp.Controllers
             }
             try
             {
+                var stopWatch = Stopwatch.StartNew();
                 await _studentStore.DeleteStudent(id);
+                _telemetryClient.TrackMetric("StudentStore.DeleteStudent.Time", stopWatch.ElapsedMilliseconds);
+                _telemetryClient.TrackEvent("StudentDeleted");
+
                 return Ok();
             }
             catch (StudentNotFoundException)
@@ -109,7 +123,9 @@ namespace FooWebApp.Controllers
         {
             try
             {
+                var stopWatch = Stopwatch.StartNew();
                 var students = await _studentStore.GetStudents();
+                _telemetryClient.TrackMetric("StudentStore.GetStudents.Time", stopWatch.ElapsedMilliseconds);
                 var response = new GetStudentsResponse
                 {
                     Students = students
@@ -139,7 +155,11 @@ namespace FooWebApp.Controllers
                     return BadRequest(error);
                 }
 
+                var stopWatch = Stopwatch.StartNew();
                 await _studentStore.UpdateStudent(student);
+                _telemetryClient.TrackMetric("StudentStore.UpdateStudents.Time", stopWatch.ElapsedMilliseconds);
+                _telemetryClient.TrackEvent("StudentUpdated");
+
                 return Ok();
             }
             catch (StorageErrorException e)

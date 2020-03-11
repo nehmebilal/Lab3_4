@@ -1,6 +1,7 @@
 using FooWebApp.Controllers;
 using FooWebApp.DataContracts;
 using FooWebApp.Store;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -28,7 +29,7 @@ namespace FooWebApp.Tests
             //var loggerStub = new StudentsControllerLoggerStub();
             studentsStoreMock.Setup(store => store.AddStudent(_testStudent)).ThrowsAsync(new StorageErrorException());
 
-            var controller = new StudentsController(studentsStoreMock.Object, Mock.Of<ILogger<StudentsController>>());
+            var controller = new StudentsController(studentsStoreMock.Object, Mock.Of<ILogger<StudentsController>>(), new TelemetryClient());
 
             IActionResult result = await controller.Post(_testStudent);
             AssertUtils.HasStatusCode(HttpStatusCode.ServiceUnavailable, result);
@@ -44,7 +45,7 @@ namespace FooWebApp.Tests
             studentsStoreMock.Setup(store => store.AddStudent(_testStudent)).ThrowsAsync(new Exception("Test Exception"));
             var loggerStub = new StudentsControllerLoggerStub();
 
-            var controller = new StudentsController(studentsStoreMock.Object, loggerStub);
+            var controller = new StudentsController(studentsStoreMock.Object, loggerStub, new TelemetryClient());
 
             IActionResult result = await controller.Post(_testStudent);
             AssertUtils.HasStatusCode(HttpStatusCode.InternalServerError, result);
