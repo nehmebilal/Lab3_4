@@ -37,6 +37,7 @@ namespace FooWebApp.Controllers
             }
             catch (StudentNotFoundException)
             {
+                _logger.LogWarning($"Student {id} was not found");
                 return NotFound($"The student with id {id} was not found");
             }
             catch (StorageErrorException e)
@@ -71,6 +72,7 @@ namespace FooWebApp.Controllers
             }
             catch (StudentAlreadyExistsException)
             {
+                _logger.LogWarning($"Student {student.Id} already exists");
                 return Conflict($"Student {student.Id} already exists");
             }
             catch (StorageErrorException e)
@@ -104,6 +106,7 @@ namespace FooWebApp.Controllers
             }
             catch (StudentNotFoundException)
             {
+                _logger.LogWarning($"Student {id} was not found");
                 return NotFound($"The student with id {id} was not found");
             }
             catch (StorageErrorException e)
@@ -152,6 +155,7 @@ namespace FooWebApp.Controllers
 
                 if (!ValidateStudent(student, out string error))
                 {
+                    _logger.LogWarning(error);
                     return BadRequest(error);
                 }
 
