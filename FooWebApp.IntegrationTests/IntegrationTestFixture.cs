@@ -1,4 +1,5 @@
 ﻿using FooWebApp.Client;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 
 namespace FooWebApp.IntegrationTests
@@ -7,7 +8,7 @@ namespace FooWebApp.IntegrationTests
     {
         public IntegrationTestFixture()
         {
-            TestServer testServer = new TestServer(Program.CreateWebHostBuilder(new string[] { }));
+            TestServer testServer = new TestServer(Program.CreateWebHostBuilder(new string[] { }).UseEnvironment("Development"));
             var httpClient = testServer.CreateClient();
             FooServiceClient = new FooServiceClient(httpClient);
         }

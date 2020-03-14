@@ -18,7 +18,7 @@ namespace FooWebApp.Client
         public async Task<Student> GetStudent(string id)
         {
             var responseMessage = await _httpClient.GetAsync($"api/students/{id}");
-            EnsureSuccessOrThrow(responseMessage);
+            await EnsureSuccessOrThrow(responseMessage);
             string json = await responseMessage.Content.ReadAsStringAsync();
             var fetchedStudent = JsonConvert.DeserializeObject<Student>(json);
             return fetchedStudent;
@@ -35,13 +35,13 @@ namespace FooWebApp.Client
             string json = JsonConvert.SerializeObject(body);
             HttpResponseMessage responseMessage = await _httpClient.PutAsync($"api/students/{student.Id}", new StringContent(json, 
                 Encoding.UTF8, "application/json"));
-            EnsureSuccessOrThrow(responseMessage);
+            await EnsureSuccessOrThrow(responseMessage);
         }
 
         public async Task<GetStudentsResponse> GetStudents()
         {
             var responseMessage = await _httpClient.GetAsync("api/students");
-            EnsureSuccessOrThrow(responseMessage);
+            await EnsureSuccessOrThrow(responseMessage);
             string json = await responseMessage.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<GetStudentsResponse>(json);
         }
@@ -49,14 +49,15 @@ namespace FooWebApp.Client
         public async Task DeleteStudent(string id)
         {
             var responseMessage = await _httpClient.DeleteAsync($"api/students/{id}");
-            EnsureSuccessOrThrow(responseMessage);
+            await EnsureSuccessOrThrow(responseMessage);
         }
 
-        private static void EnsureSuccessOrThrow(HttpResponseMessage responseMessage)
+        private async Task EnsureSuccessOrThrow(HttpResponseMessage responseMessage)
         {
             if (!responseMessage.IsSuccessStatusCode)
             {
-                throw new FooServiceException(responseMessage.ReasonPhrase, responseMessage.StatusCode);
+                string message = $"{responseMessage.ReasonPhrase}, {await responseMessage.Content.ReadAsStringAsync()}";
+                throw new FooServiceException(message, responseMessage.StatusCode);
             }
         }
 
@@ -65,7 +66,7 @@ namespace FooWebApp.Client
             string json = JsonConvert.SerializeObject(student);
             HttpResponseMessage responseMessage = await _httpClient.PostAsync("api/students", new StringContent(json, Encoding.UTF8,
                 "application/json"));
-            EnsureSuccessOrThrow(responseMessage);
+            await EnsureSuccessOrThrow(responseMessage);
         }
     }
 }
