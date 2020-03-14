@@ -28,27 +28,30 @@ namespace FooWebApp.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
-            try
+            using (_logger.BeginScope("{StudentId}", id))
             {
-                var stopWatch = Stopwatch.StartNew();
-                Student student = await _studentStore.GetStudent(id);
-                _telemetryClient.TrackMetric("StudentStore.GetStudent.Time", stopWatch.ElapsedMilliseconds);
-                return Ok(student);
-            }
-            catch (StudentNotFoundException)
-            {
-                _logger.LogWarning($"Student {id} was not found");
-                return NotFound($"The student with id {id} was not found");
-            }
-            catch (StorageErrorException e)
-            {
-                _logger.LogError(e, $"Failed to retrieve student {id} from storage");
-                return StatusCode(503, "The service is unavailable, please retry in few minutes");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Unknown exception occured while retrieving student {id} from storage");
-                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                try
+                {
+                    var stopWatch = Stopwatch.StartNew();
+                    Student student = await _studentStore.GetStudent(id);
+                    _telemetryClient.TrackMetric("StudentStore.GetStudent.Time", stopWatch.ElapsedMilliseconds);
+                    return Ok(student);
+                }
+                catch (StudentNotFoundException)
+                {
+                    _logger.LogWarning($"Student {id} was not found");
+                    return NotFound($"The student with id {id} was not found");
+                }
+                catch (StorageErrorException e)
+                {
+                    _logger.LogError(e, $"Failed to retrieve student {id} from storage");
+                    return StatusCode(503, "The service is unavailable, please retry in few minutes");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Unknown exception occured while retrieving student {id} from storage");
+                    return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                }
             }
         }
 
@@ -56,34 +59,38 @@ namespace FooWebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Student student)
         {
-            if (!ValidateStudent(student, out string error))
+            using (_logger.BeginScope("{StudentId}", student.Id))
             {
-                return BadRequest(error);
-            }
+                if (!ValidateStudent(student, out string error))
+                {
+                    return BadRequest(error);
+                }
 
-            try
-            {
-                var stopWatch = Stopwatch.StartNew();
-                await _studentStore.AddStudent(student);
-                _telemetryClient.TrackMetric("StudentStore.AddStudent.Time", stopWatch.ElapsedMilliseconds);
-                _telemetryClient.TrackEvent("StudentAdded");
+                try
+                {
+                    var stopWatch = Stopwatch.StartNew();
+                    await _studentStore.AddStudent(student);
 
-                return CreatedAtAction(nameof(Get), new { id = student.Id}, student);
-            }
-            catch (StudentAlreadyExistsException)
-            {
-                _logger.LogWarning($"Student {student.Id} already exists");
-                return Conflict($"Student {student.Id} already exists");
-            }
-            catch (StorageErrorException e)
-            {
-                _logger.LogError(e, $"Failed add student {student} to storage");
-                return StatusCode(503, "The service is unavailable, please retry in few minutes");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Unknown exception occured while adding student {student} to storage");
-                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                    _telemetryClient.TrackMetric("StudentStore.AddStudent.Time", stopWatch.ElapsedMilliseconds);
+                    _telemetryClient.TrackEvent("StudentAdded");
+
+                    return CreatedAtAction(nameof(Get), new { id = student.Id }, student);
+                }
+                catch (StudentAlreadyExistsException)
+                {
+                    _logger.LogWarning($"Student {student.Id} already exists");
+                    return Conflict($"Student {student.Id} already exists");
+                }
+                catch (StorageErrorException e)
+                {
+                    _logger.LogError(e, $"Failed add student {student} to storage");
+                    return StatusCode(503, "The service is unavailable, please retry in few minutes");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Unknown exception occured while adding student {student} to storage");
+                    return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                }
             }
         }
 
@@ -91,33 +98,36 @@ namespace FooWebApp.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            using (_logger.BeginScope("{StudentId}", id))
             {
-                return BadRequest("The id must not be empty");
-            }
-            try
-            {
-                var stopWatch = Stopwatch.StartNew();
-                await _studentStore.DeleteStudent(id);
-                _telemetryClient.TrackMetric("StudentStore.DeleteStudent.Time", stopWatch.ElapsedMilliseconds);
-                _telemetryClient.TrackEvent("StudentDeleted");
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    return BadRequest("The id must not be empty");
+                }
+                try
+                {
+                    var stopWatch = Stopwatch.StartNew();
+                    await _studentStore.DeleteStudent(id);
+                    _telemetryClient.TrackMetric("StudentStore.DeleteStudent.Time", stopWatch.ElapsedMilliseconds);
+                    _telemetryClient.TrackEvent("StudentDeleted");
 
-                return Ok();
-            }
-            catch (StudentNotFoundException)
-            {
-                _logger.LogWarning($"Student {id} was not found");
-                return NotFound($"The student with id {id} was not found");
-            }
-            catch (StorageErrorException e)
-            {
-                _logger.LogError(e, $"Failed to delete student {id} from storage");
-                return StatusCode(503, "The service is unavailable, please retry in few minutes");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Unknown exception occured while deleting student {id} from storage");
-                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                    return Ok();
+                }
+                catch (StudentNotFoundException)
+                {
+                    _logger.LogWarning($"Student {id} was not found");
+                    return NotFound($"The student with id {id} was not found");
+                }
+                catch (StorageErrorException e)
+                {
+                    _logger.LogError(e, $"Failed to delete student {id} from storage");
+                    return StatusCode(503, "The service is unavailable, please retry in few minutes");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Unknown exception occured while deleting student {id} from storage");
+                    return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                }
             }
         }
 
@@ -144,37 +154,40 @@ namespace FooWebApp.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id, [FromBody] UpdateStudentRequestBody updateStudentRequestBody)
         {
-            try
+            using (_logger.BeginScope("{StudentId}", id))
             {
-                var student = new Student
+                try
                 {
-                    Id = id,
-                    Name = updateStudentRequestBody.Name,
-                    GradePercentage = updateStudentRequestBody.GradePercentage
-                };
+                    var student = new Student
+                    {
+                        Id = id,
+                        Name = updateStudentRequestBody.Name,
+                        GradePercentage = updateStudentRequestBody.GradePercentage
+                    };
 
-                if (!ValidateStudent(student, out string error))
-                {
-                    _logger.LogWarning(error);
-                    return BadRequest(error);
+                    if (!ValidateStudent(student, out string error))
+                    {
+                        _logger.LogWarning(error);
+                        return BadRequest(error);
+                    }
+
+                    var stopWatch = Stopwatch.StartNew();
+                    await _studentStore.UpdateStudent(student);
+                    _telemetryClient.TrackMetric("StudentStore.UpdateStudents.Time", stopWatch.ElapsedMilliseconds);
+                    _telemetryClient.TrackEvent("StudentUpdated");
+
+                    return Ok();
                 }
-
-                var stopWatch = Stopwatch.StartNew();
-                await _studentStore.UpdateStudent(student);
-                _telemetryClient.TrackMetric("StudentStore.UpdateStudents.Time", stopWatch.ElapsedMilliseconds);
-                _telemetryClient.TrackEvent("StudentUpdated");
-
-                return Ok();
-            }
-            catch (StorageErrorException e)
-            {
-                _logger.LogError(e, $"Failed to update student {id} in storage");
-                return StatusCode(503, "The service is unavailable, please retry in few minutes");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Unknown exception occured while updating student {id} in storage");
-                return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                catch (StorageErrorException e)
+                {
+                    _logger.LogError(e, $"Failed to update student {id} in storage");
+                    return StatusCode(503, "The service is unavailable, please retry in few minutes");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Unknown exception occured while updating student {id} in storage");
+                    return StatusCode(500, "An internal server error occured, please reachout to support if this error persists");
+                }
             }
         }
 

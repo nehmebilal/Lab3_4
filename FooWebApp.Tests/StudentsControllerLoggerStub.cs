@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace FooWebApp.Tests
 {
@@ -11,7 +12,7 @@ namespace FooWebApp.Tests
         
         public IDisposable BeginScope<TState>(TState state)
         {
-            throw new NotImplementedException();
+            return new MemoryStream();
         }
 
         public bool IsEnabled(LogLevel logLevel)
