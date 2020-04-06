@@ -13,9 +13,6 @@ namespace FooWebApp
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            var configuration = new ConfigurationBuilder()
-
-                .Build();
             return WebHost.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {

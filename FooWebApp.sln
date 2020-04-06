@@ -11,9 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp.IntegrationTests"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp.Client", "FooWebApp.Client\FooWebApp.Client.csproj", "{184E7329-DF36-40CB-A211-6DD842E504AB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp.Tests", "FooWebApp.Tests\FooWebApp.Tests.csproj", "{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FooWebApp.DeploymentTests", "FooWebApp.DeploymentTests\FooWebApp.DeploymentTests.csproj", "{F13E4FA5-E138-40B5-A693-E2C794590E8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FooWebApp.DeploymentTests", "FooWebApp.DeploymentTests\FooWebApp.DeploymentTests.csproj", "{F13E4FA5-E138-40B5-A693-E2C794590E8F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +35,6 @@ Global
 		{184E7329-DF36-40CB-A211-6DD842E504AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{184E7329-DF36-40CB-A211-6DD842E504AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{184E7329-DF36-40CB-A211-6DD842E504AB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77DD9B23-B2B2-4F0F-9EF1-ADA9C4B5137A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F13E4FA5-E138-40B5-A693-E2C794590E8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F13E4FA5-E138-40B5-A693-E2C794590E8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F13E4FA5-E138-40B5-A693-E2C794590E8F}.Release|Any CPU.ActiveCfg = Release|Any CPU

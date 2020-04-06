@@ -1,9 +1,14 @@
-﻿using FooWebApp.Store;
+﻿using FooWebApp.Services;
+using FooWebApp.Store;
+using FooWebApp.Store.DocumentDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace FooWebApp
 {
@@ -25,10 +30,24 @@ namespace FooWebApp
             services.AddApplicationInsightsTelemetry(instrumentationKey);
             
 
-            services.AddSingleton<IStudentStore, AzureTableStudentStore>();
+            services.AddSingleton<IStudentStore, DocumentDbStudentStore>();
+            services.AddSingleton<IStudentService, StudentService>();
 
             services.AddOptions();
             services.Configure<AzureStorageSettings>(Configuration.GetSection("AzureStorageSettings"));
+
+            services.Configure<DocumentDbSettings>(Configuration.GetSection(nameof(DocumentDbSettings)));
+            services.AddSingleton<IDocumentClient>(sp =>
+            {
+                var settings = GetSettings<DocumentDbSettings>();
+                return new DocumentClient(new Uri(settings.EndpointUrl), settings.PrimaryKey,
+                    new ConnectionPolicy
+                    {
+                        ConnectionMode = ConnectionMode.Direct,
+                        ConnectionProtocol = Protocol.Tcp,
+                        MaxConnectionLimit = settings.MaxConnectionLimit
+                    });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,10 +62,19 @@ namespace FooWebApp
 
             app.UseAuthorization();
 
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private T GetSettings<T>() where T : new()
+        {
+            var config = Configuration.GetSection(typeof(T).Name);
+            T settings = new T();
+            config.Bind(settings);
+            return settings;
         }
     }
 }

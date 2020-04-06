@@ -9,15 +9,16 @@ using Xunit;
 
 namespace FooWebApp.IntegrationTests
 {
-    public abstract class StudentsControllerEndToEndTests<TFixture> : IClassFixture<TFixture>, IAsyncLifetime where TFixture : class, IEndToEndTestsFixture
+    public abstract class CoursesControllerEndToEndTests<TFixture> : IClassFixture<TFixture>, IAsyncLifetime where TFixture : class, IEndToEndTestsFixture
     {
         private readonly IFooServiceClient _fooServiceClient;
         private readonly Random _rand = new Random();
+        private string _courseName = Guid.NewGuid().ToString();
 
         // a concurrent container where we keep the records that were added to storage so that we can cleanup after
         private readonly ConcurrentBag<Student> _studentsToCleanup = new ConcurrentBag<Student>();
 
-        public StudentsControllerEndToEndTests(TFixture fixture)
+        public CoursesControllerEndToEndTests(TFixture fixture)
         {
             _fooServiceClient = fixture.FooServiceClient;
         }
@@ -36,7 +37,7 @@ namespace FooWebApp.IntegrationTests
             foreach(var student in _studentsToCleanup)
             {
                 // the task will be started but not initiated
-                var task = _fooServiceClient.DeleteStudent(student.Id);
+                var task = _fooServiceClient.DeleteStudent(_courseName, student.Id);
 
                 // add the task to a list
                 tasks.Add(task);
@@ -53,7 +54,7 @@ namespace FooWebApp.IntegrationTests
             var student = CreateRandomStudent();
             await AddStudent(student);
 
-            var fetchedStudent = await _fooServiceClient.GetStudent(student.Id);
+            var fetchedStudent = await _fooServiceClient.GetStudent(_courseName, student.Id);
             Assert.Equal(student, fetchedStudent);
         }
         
@@ -74,7 +75,7 @@ namespace FooWebApp.IntegrationTests
                 Id = id,
                 GradePercentage = gradePercentage
             };
-            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.AddStudent(student));
+            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.AddStudent(_courseName, student));
             Assert.Equal(HttpStatusCode.BadRequest, e.StatusCode);
         }
 
@@ -82,7 +83,7 @@ namespace FooWebApp.IntegrationTests
         public async Task GetNonExistingStudent()
         {
             string randomId = CreateRandomString();
-            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.GetStudent(randomId));
+            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.GetStudent(_courseName, randomId));
             Assert.Equal(HttpStatusCode.NotFound, e.StatusCode);
         }
         
@@ -109,7 +110,7 @@ namespace FooWebApp.IntegrationTests
             }
             await Task.WhenAll(tasks); // add all the students in parallel
 
-            GetStudentsResponse response = await _fooServiceClient.GetStudents();
+            GetStudentsResponse response = await _fooServiceClient.GetStudents(_courseName, 5);
             
             // check that all the students we added are there
             foreach (var student in students)
@@ -122,6 +123,40 @@ namespace FooWebApp.IntegrationTests
         }
 
         [Fact]
+        public async Task GetStudentsPaging()
+        {
+            var students = new List<Student>();
+            var tasks = new List<Task>();
+            for (int i = 0; i < 5; ++i)
+            {
+                Student student = CreateRandomStudent();
+                students.Add(student);
+                tasks.Add(AddStudent(student));
+            }
+            await Task.WhenAll(tasks); // add all the students in parallel
+            
+            // get first page
+            GetStudentsResponse response = await _fooServiceClient.GetStudents(_courseName, 3);
+            Assert.Equal(3, response.Students.Count);
+            Assert.NotEmpty(response.NextUri);
+            // check that all the students we added are there
+            foreach (var student in response.Students)
+            {
+                Assert.Contains(student, students);
+            }
+            students.RemoveAll(s => response.Students.Contains(s));
+
+            // get all the rest
+            response = await _fooServiceClient.GetStudentsByUri(response.NextUri);
+            Assert.Equal(2, response.Students.Count);
+            Assert.Null(response.NextUri);
+            foreach (var student in response.Students)
+            {
+                Assert.Contains(student, students);
+            }
+        }
+
+        [Fact]
         public async Task UpdateExistingStudent()
         {
             var student = CreateRandomStudent();
@@ -129,8 +164,8 @@ namespace FooWebApp.IntegrationTests
 
             student.Name = CreateRandomString();
             student.GradePercentage = RandomGrade();
-            await _fooServiceClient.UpdateStudent(student);
-            var fetchedStudent = await _fooServiceClient.GetStudent(student.Id);
+            await _fooServiceClient.UpdateStudent(_courseName, student);
+            var fetchedStudent = await _fooServiceClient.GetStudent(_courseName, student.Id);
             Assert.Equal(student, fetchedStudent);
         }
 
@@ -138,11 +173,11 @@ namespace FooWebApp.IntegrationTests
         public async Task UpdateNonExistingStudent()
         {
             var student = CreateRandomStudent();
-            await _fooServiceClient.UpdateStudent(student);
+            await _fooServiceClient.UpdateStudent(_courseName, student);
             _studentsToCleanup.Add(student);
 
             // make sure the student was added, even though it did not exist
-            var fetchedStudent = await _fooServiceClient.GetStudent(student.Id);
+            var fetchedStudent = await _fooServiceClient.GetStudent(_courseName, student.Id);
             Assert.Equal(student, fetchedStudent);
         }
 
@@ -158,7 +193,7 @@ namespace FooWebApp.IntegrationTests
             await AddStudent(student);
             student.Name = name;
             student.GradePercentage = gradePercentage;
-            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.UpdateStudent(student));
+            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.UpdateStudent(_courseName, student));
             Assert.Equal(HttpStatusCode.BadRequest, e.StatusCode);
         }
 
@@ -166,9 +201,9 @@ namespace FooWebApp.IntegrationTests
         public async Task DeleteStudent()
         {
             var student = CreateRandomStudent();
-            await _fooServiceClient.AddStudent(student);
-            await _fooServiceClient.DeleteStudent(student.Id);
-            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.GetStudent(student.Id));
+            await _fooServiceClient.AddStudent(_courseName, student);
+            await _fooServiceClient.DeleteStudent(_courseName, student.Id);
+            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.GetStudent(_courseName, student.Id));
             Assert.Equal(HttpStatusCode.NotFound, e.StatusCode);
         }
 
@@ -176,13 +211,13 @@ namespace FooWebApp.IntegrationTests
         public async Task DeleteNonExistingStudent()
         {
             var student = CreateRandomStudent();
-            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.DeleteStudent(student.Id));
+            var e = await Assert.ThrowsAsync<FooServiceException>(() => _fooServiceClient.DeleteStudent(_courseName, student.Id));
             Assert.Equal(HttpStatusCode.NotFound, e.StatusCode);
         }
 
         private async Task AddStudent(Student student)
         {
-            await _fooServiceClient.AddStudent(student);
+            await _fooServiceClient.AddStudent(_courseName, student);
             _studentsToCleanup.Add(student);
         }
 
@@ -210,7 +245,7 @@ namespace FooWebApp.IntegrationTests
             {
                 Id = studentId,
                 Name = "Joe",
-                GradePercentage = RandomGrade()
+                GradePercentage = RandomGrade(),
             };
             return student;
         }

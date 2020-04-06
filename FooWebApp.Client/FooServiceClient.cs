@@ -15,16 +15,16 @@ namespace FooWebApp.Client
             _httpClient = httpClient;
         }
 
-        public async Task<Student> GetStudent(string id)
+        public async Task<Student> GetStudent(string courseName, string studentId)
         {
-            var responseMessage = await _httpClient.GetAsync($"api/students/{id}");
+            var responseMessage = await _httpClient.GetAsync($"api/courses/{courseName}/students/{studentId}");
             await EnsureSuccessOrThrow(responseMessage);
             string json = await responseMessage.Content.ReadAsStringAsync();
             var fetchedStudent = JsonConvert.DeserializeObject<Student>(json);
             return fetchedStudent;
         }
 
-        public async Task UpdateStudent(Student student)
+        public async Task UpdateStudent(string courseName, Student student)
         {
             var body = new UpdateStudentRequestBody
             {
@@ -33,22 +33,27 @@ namespace FooWebApp.Client
             };
             
             string json = JsonConvert.SerializeObject(body);
-            HttpResponseMessage responseMessage = await _httpClient.PutAsync($"api/students/{student.Id}", new StringContent(json, 
+            HttpResponseMessage responseMessage = await _httpClient.PutAsync($"api/courses/{courseName}/students/{student.Id}", new StringContent(json, 
                 Encoding.UTF8, "application/json"));
             await EnsureSuccessOrThrow(responseMessage);
         }
 
-        public async Task<GetStudentsResponse> GetStudents()
+        public Task<GetStudentsResponse> GetStudents(string courseName, int limit)
         {
-            var responseMessage = await _httpClient.GetAsync("api/students");
+            return GetStudentsByUri($"api/courses/{courseName}/students?limit={limit}");
+        }
+
+        public async Task<GetStudentsResponse> GetStudentsByUri(string uri)
+        {
+            var responseMessage = await _httpClient.GetAsync(uri);
             await EnsureSuccessOrThrow(responseMessage);
             string json = await responseMessage.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<GetStudentsResponse>(json);
         }
 
-        public async Task DeleteStudent(string id)
+        public async Task DeleteStudent(string courseName, string id)
         {
-            var responseMessage = await _httpClient.DeleteAsync($"api/students/{id}");
+            var responseMessage = await _httpClient.DeleteAsync($"api/courses/{courseName}/students/{id}");
             await EnsureSuccessOrThrow(responseMessage);
         }
 
@@ -61,10 +66,10 @@ namespace FooWebApp.Client
             }
         }
 
-        public async Task AddStudent(Student student)
+        public async Task AddStudent(string courseName, Student student)
         {
             string json = JsonConvert.SerializeObject(student);
-            HttpResponseMessage responseMessage = await _httpClient.PostAsync("api/students", new StringContent(json, Encoding.UTF8,
+            HttpResponseMessage responseMessage = await _httpClient.PostAsync($"api/courses/{courseName}/students", new StringContent(json, Encoding.UTF8,
                 "application/json"));
             await EnsureSuccessOrThrow(responseMessage);
         }
