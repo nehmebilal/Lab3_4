@@ -28,9 +28,8 @@ namespace FooWebApp
 
             string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
             services.AddApplicationInsightsTelemetry(instrumentationKey);
-            
 
-            services.AddSingleton<IStudentStore, DocumentDbStudentStore>();
+            services.AddSingleton<IStudentStore, InMemoryStudentStore>();
             services.AddSingleton<IStudentService, StudentService>();
 
             services.AddOptions();
